@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>vue2-pack</title>
+</head>
+<body>
+<div id="app"></div>
+<!-- built files will be auto injected -->
+</body>
+</html>
+
+<script>
+  document.oncontextmenu = function(){
+    return false;
+  };
+
+  function splitDrag(box, left, line, right, w) {
+    var oTop = document.getElementById(left);
+    var oLine = document.getElementById(line);
+    var oBottom = document.getElementById(right);
+    var oBox = document.getElementById(box);
+
+    oLine.onmousedown = function (e) {
+      var disX = (e || event).clientX;
+      oLine.left = oLine.offsetLeft;
+      document.onmousemove = function (e) {
+        var iT = oLine.left + ((e || event).clientX - disX);
+        var e = e || window.event, tarnameb = e.target || e.srcElement;
+        var maxT = oBox.clientWight - oLine.offsetWidth;
+        oLine.style.margin = 0;
+
+        iT < 0 && (iT = 0);
+        iT > maxT && (iT = maxT);
+        oLine.style.left = oTop.style.width = iT + "px";
+        oBottom.style.width = oBox.clientWidth - iT + "px";
+        return false
+      };
+      document.onmouseup = function () {
+        document.onmousemove = null;
+        document.onmouseup = null;
+        oLine.releaseCapture && oLine.releaseCapture()
+      };
+      oLine.setCapture && oLine.setCapture();
+      return false
+    };
+  }
+</script>
+
+<style>
+
+  html, body {
+    margin: 0;
+    padding: 0;
+  }
+  #app{
+    margin: 0;
+    padding: 0;
+    background: rgba(0,0,0,0);
+  }
+  p,div,h1,h2,h3,span,a,ul,li{
+    margin: 0;
+    padding: 0;
+  }
+  li{
+    list-style: none;
+  }
+  input:focus{
+    outline: none;
+  }
+</style>
