@@ -1,21 +1,21 @@
 <template>
 
-  <div class="note" v-show="noteContent">
+  <div class="note" v-show="articleContent">
+    <div class="title"><input type="text" v-model="articleContent.article_title"></div>
 
-    <div class="title"><input type="text" v-model="noteContent.article_title" @blur="edit"></div>
-
-    <div class="contents" v-show="!isEdit">
-      <mavon-editor class="mavonEditor" v-html="noteContent.article_content" :subfield="false" :defaultOpen="defaultData"
+    <div class="contents">
+      <mavon-editor class="mavonEditor" v-html="articleContent.article_content" :subfield="false"
+                    :defaultOpen="defaultData"
                     :toolbarsFlag="false"
                     :boxShadow="true"/>
     </div>
     <div class="editorBox" v-show="isEdit" @keydown.ctrl.83="show($event)">
-      <mavon-editor class="mavonEditor" v-model="noteContent.article_content_code" @change="changeData"/>
+      <mavon-editor class="mavonEditor" v-model="articleContent.article_content_code" @change="changeData"/>
     </div>
 
 
     <div class="edit">
-      <div class="editBtn" @click="edit();isEdit = !isEdit">编辑</div>
+      <div class="editBtn" @click="edit();isEdit = !isEdit">{{editTxt}}</div>
     </div>
   </div>
 
@@ -25,16 +25,12 @@
 <script>
   export default {
     name: "NoteContent",
-    props: {
-      noteContent: {
-        required: true
-      },
-      isEdit: false,
 
-    },
     data() {
       return {
-        // isEdit:false,
+        isEdit: false,
+        editTxt: '编辑',
+        articleContent: '',
         editContnet: '',
         editContnet_code: '',
         defaultData: "preview",
@@ -43,45 +39,65 @@
         }
       };
     },
-    created() {
-
-
+    props: {
+      sendArticleId: {
+        required: true
+      },
     },
+    watch: {
+      sendArticleId: function () {
+        this.$ajax.post("/api/article/getContentByarticleId", {
+          'articleId': this.sendArticleId,
+        }).then(function (res) {
+          this.articleContent = res.data[0];
+        }.bind(this)).catch(function (error) {
+        });
+      }
+    },
+
     methods: {
       show: function (ev) {
-
-        console.log(this.noteContent.a_title);
-        console.log(this.editContnet);
-
         if (this.editContnet != '') {
           this.$ajax.post("/api/article/edit", {
-            'articleTitle': this.noteContent.a_title,
-            'articleId': this.noteContent.a_id,
+            'articleTitle': this.articleContent.article_title,
+            'articleId': this.sendArticleId,
             'articleContent': this.editContnet,
             'articleContentCode': this.editContnet_code,
           }).then(function (res) {
-           console.log(res);
+            console.log(res);
           }.bind(this)).catch(function (error) {
           });
         }
-
       },
 
 
       edit: function () {
         if (this.isEdit == false) {
-          this.editContnet = this.noteContent.content;
+          this.editTxt = '保存';
+        } else {
+          this.editTxt = '编辑';
+          if (this.editContnet != '') {
+            this.$ajax.post("/api/article/edit", {
+              'articleTitle': this.articleContent.article_title,
+              'articleId': this.sendArticleId,
+              'articleContent': this.editContnet,
+              'articleContentCode': this.editContnet_code,
+            }).then(function (res) {
+            }.bind(this)).catch(function (error) {
+            });
+          }
         }
 
       },
       changeData(value, render) {
-        if (this.noteContent.a_content != value) {
-          console.log('发生改变');
+        // 判断是否改变
+        if (this.articleContent.article_content != render) {
           this.editContnet = render;
           this.editContnet_code = value;
+          this.articleContent.article_content = this.editContnet
+        } else {
 
         }
-
       }
 
 

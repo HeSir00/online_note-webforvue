@@ -4,17 +4,24 @@
       <TitleBtn></TitleBtn>
     </div>
     <div class="sideBar">
-      <side-bar v-on:sendFolder="getFolder($event)"></side-bar>
+      <side-bar v-on:sendFolder="getFolder($event)"
+                v-on:editFolderState="getEditFolderState($event)"
+                v-bind:clearEditFolderState='clearEditFolderState'>
+      </side-bar>
     </div>
-    <div class="content" id="content">
+
+    <div class="content" id="content" @click.stop="clearState()" @contextmenu.prevent="clearState()">
       <div class="noteList" id="noteList">
         <div class="search"><input type="text" v-on:input="inputFun" v-model="searchText" placeholder="搜索..."> <span
           v-show="isClear" @click="clearText">X</span></div>
-        <note-title v-bind:noteTitles="noteTitles" v-on:noteContent="getContent($event)"></note-title>
+        <note-title
+          v-bind:noteTitles="noteTitles"
+          v-on:articleId="getContent($event)">
+        </note-title>
         <div class="splitLine" id="splitLine2"></div>
       </div>
-      <div class="noteContent" id="noteContent">
-        <note-content v-bind:noteContent="noteContent"></note-content>
+      <div class="noteContent" id="noteContent" >
+        <note-content v-bind:sendArticleId="sendArticleId"></note-content>
       </div>
     </div>
 
@@ -35,8 +42,10 @@
         isCteate: false,
         isClear: false,
         noteTitles: '',
-        noteContent: '',
+        sendArticleId: '',
         searchText: '',
+        clearEditFolderState: true,     //文件夹 编辑状态
+        clearEditTitleState: true,      //标题 编辑专题该
       }
     },
     created() {
@@ -55,16 +64,23 @@
         console.log(index);
       },
 
+      //获取文件夹编辑状态
+      getEditFolderState: function (state) {
+        this.clearEditFolderState = state;
+      },
+      clearState: function () {
+        this.clearEditFolderState = '';
+      },
+
       //获取sidebar 传过来的article
       getFolder: function (folder) {
         this.noteTitles = folder;
-        console.log(folder);
       },
       //获取文章
-      getContent: function (content) {
-        this.noteContent = content;
+      getContent: function (id) {
+        this.sendArticleId = id;
 
-        console.log(content)
+        console.log(this.sendArticleId)
       },
 
       //获取查询

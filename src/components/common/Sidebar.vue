@@ -1,6 +1,6 @@
 <template>
-  <div class="sideBar"
-       @click=" watchClicl();closeCreate;isCteate = false;isShowIn = false;isEditFolder = false;renameBox = false">
+  <div class="sideBar" @contextmenu.prevent="sendEditState"
+       @click=" watchClicl();closeCreate; isCteate = false;isShowIn = false;isEditFolder = false;renameBox = false">
     <div class="userInfo">
       <div class="header"></div>
       <div class="user">
@@ -15,7 +15,6 @@
       新建笔记本</p></div>
 
     <ul class="folder">
-
       <li class="eachPart" v-for="(item,index) in allCate" @click="clickItem(item,index)"
           :class="{showChildren:index == isShowChildren} ">
         <div class="createPart" :class="{thisPart:index == isChoosePart}" @click.stop="">
@@ -93,7 +92,19 @@
         getPartId: '',             //x新建文件夹 需要的partID
       }
     },
+    props: {
+      clearEditFolderState: {
+        require: true
+      }
+    },
+    watch: {
+      clearEditFolderState: function () {
+        this.isEditFolder = this.clearEditFolderState;
+      }
+    },
     created() {
+      console.log(this.clearEditFolderState)
+
       this.username = localStorage.getItem('username');
       this.userEmail = localStorage.getItem('userEmail');
       this.$ajax.post("/api/folder/lis", {}).then(function (res) {
@@ -103,6 +114,12 @@
       });
     },
     methods: {
+      sendEditState: function () {
+        console.log(this.isEditFolder);
+        this.$emit('editFolderState', this.isEditFolder);
+      },
+
+
       clickItem(item, index) {
         item.isShow = !item.isShow;
         this.isEditFolder = false;
@@ -140,9 +157,8 @@
         console.log(event.screenY);
         this.clickY = event.screenY;
         this.isEditFolder = !this.isEditFolder;
-        this.$refs.editFolder.style.top = event.screenY - 90 + 'px';
+        this.$refs.editFolder.style.top = event.screenY - 80 + 'px';
 
-        console.log()
       },
       //获取是 part  还是 folder
       getPart: function (item, index, partId) {
@@ -475,9 +491,9 @@
     }
     .showChildren {
       display: block;
-      p {
-        color: rgb(15, 78, 132);
-      }
+      /*p {*/
+      /*color: rgb(15, 78, 132);*/
+      /*}*/
       span {
         position: relative;
         top: 10px;

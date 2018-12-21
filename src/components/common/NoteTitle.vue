@@ -1,60 +1,80 @@
 <template>
-  <div class="allNote-title" @contextmenu.prevent="open">
+  <!--@contextmenu.prevent="isChangeTitle = false"-->
+
+  <div class="allNote-title" @click="isChangeTitle = false;isChooseTitle = -1;isShowAddBox = false">
     <ul>
-      <li v-for="(item,index) in noteTitles.data.data" @click="showNoteContent(item,index)"
-          :class="{active:index == isChoose}"><span></span>
+
+      <li v-for="(item,index) in noteTitles.data.data"
+          @click="showNoteContent(item.article_id,index)"
+          @contextmenu="showNoteContent(item.article_id,index,item.article_title)"
+          @contextmenu.prevent="open"
+          :class="{active:index == isChoose}">
+        <span></span>
         <p>{{item.article_title}}</p> <span></span>
+
+
+        <div class="createPart" @click.stop="" :class="{thisTitle:index == isChooseTitle}">
+          <input type="text" v-model="editTitle" autofocus="autofocus" @blur="changeTitle">
+        </div>
       </li>
 
-      <li class="addTitle" v-show="isShowAddBox"><input v-model="newTitle" type="text" autofocus="autofocus"
-                                                        @blur="add"></li>
-
-
+      <li class="addTitle" v-show="isShowAddBox">
+        <input v-model="newTitle" type="text" @click.stop="" autofocus="autofocus" @blur="add">
+      </li>
     </ul>
 
-    <div class="editMenu" v-show="isShowEditMenu" ref="editMenu" @click="addBtn()">
-      <span>+</span>新建笔记
-    </div>
 
+    <div class="changeTitle" ref="changeTitle" v-show="isChangeTitle">
+      <div @click.stop="geRename()"><span></span>
+        <p>重命名</p></div>
+      <div @click.stop="createTitle()"><span></span>
+        <p>新建笔记</p></div>
+      <div><span></span>
+        <p>删除</p></div>
+    </div>
 
     <p class="allNote-footer"> 总共 {{noteTitles.data.count}} 篇</p>
   </div>
 </template>
 
 <script>
-  import index from "../../router";
-
   export default {
     name: "NoteTitle",
     data: function () {
       return {
         allNoteTitle: '',
+        isChangeTitle: false,        //重命名 删除新建 菜单状态
         isChoose: -1,        //选中哪一条title
         isShowEditMenu: false, //控制显示 编辑按钮
         isShowAddBox: false,  //控制显示  编辑框
         newTitle: '',         //新添加的 标题名称
+        isChooseTitle: -1,     //选中哪条title
+        oldTitle: '',           // 修改之前的标题
+        editTitle: '',         // 修改的标题
+        titleId: '',            //标题id
       }
     },
     props: {
       noteTitles: {
         required: true
-      }
+      },
     },
+
+
     methods: {
       //传值
-      showNoteContent: function (content, index) {
-        console.log(index);
+      showNoteContent: function (id, index, title) {
         this.isChoose = index;
-        // console.log(content);
-        this.$emit('noteContent', content);
+        this.$emit('articleId', id);
+        this.editTitle = title;
+        this.oldTitle = title;
+        this.titleId = id;
       },
       open: function (event) {
         if (this.noteTitles.data.count > -1) {
-
-          this.$refs.editMenu.style.top = event.offsetY + 50 + 'px';
-          this.$refs.editMenu.style.left = event.offsetX + 10 + 'px';
-          this.isShowEditMenu = true;
-
+          this.isChangeTitle = true;
+          this.$refs.changeTitle.style.top = event.screenY - 160 + 'px';
+          this.$refs.changeTitle.style.left = event.offsetX + 20 + 'px';
         }
       },
       addBtn: function () {
@@ -72,12 +92,52 @@
           }).then(function (res) {
             this.isShowAddBox = false;
             this.newTitle = '';
+            this.$ajax.post("/api/article/getTitleById", {
+              'folderId': folderId
+            }).then(function (res) {
 
-            console.log(res);
+              console.log(res);
+              // this.noteTitles.data.data = res.data;
+            }.bind(this)).catch(function (error) {
+            });
           }.bind(this)).catch(function (error) {
           });
         }
-      }
+      },
+      //重命名
+      geRename: function () {
+        this.isChooseTitle = this.isChoose;
+        this.isChangeTitle = false;
+      },
+      //修改
+      changeTitle: function () {
+        this.isChooseTitle = -1;
+        var folderId = this.noteTitles.folderId;
+        if (this.oldTitle != this.editTitle) {
+          this.$ajax.post("/api/article/editTitle", {
+            'articleId': this.titleId,
+            'articleTitle': this.editTitle
+          }).then(function (res) {
+            this.isChangeTitle = false;
+            this.$ajax.post("/api/article/getTitleById", {
+              'folderId': folderId
+            }).then(function (res) {
+              this.noteTitles.data.data = res.data;
+            }.bind(this)).catch(function (error) {
+            });
+          }.bind(this)).catch(function (error) {
+          });
+        } else {
+          this.isChooseTitle = -1;
+        }
+
+      },
+      //新建笔记
+      createTitle: function () {
+
+        this.isShowAddBox = true;
+        this.isChangeTitle = false;
+      },
 
 
     }
@@ -87,6 +147,7 @@
 <style lang="less">
   .allNote-title {
     height: 100%;
+    position: relative;
     .notice {
       width: 150px;
       height: 150px;
@@ -104,10 +165,12 @@
       color: #3c556e;
     }
     ul {
+      width: 100%;
       li {
-        padding: 0 20px;
-        height: 50px;
-        line-height: 50px;
+        width: 100%;
+        margin: 2px 0;
+        height: 45px;
+        line-height: 45px;
         font-size: 14px;
         cursor: default;
         &:hover {
@@ -115,9 +178,10 @@
         }
         span {
           float: left;
+          margin-left: 20px;
           &:nth-of-type(1) {
             display: inline-block;
-            margin-top: 20px;
+            margin-top: 17px;
             width: 10px;
             height: 10px;
             margin-right: 10px;
@@ -131,12 +195,32 @@
         }
         p {
           float: left;
+          font-size: 12px;
           text-align: left;
+          color: #19233d;
           width: calc(100% - 55px);
+        }
+        .createPart {
+          display: none;
+          width: 90%;
+          float: left;
+          margin-top: 5px;
+          position: absolute;
+          left: 40px;
+          input {
+            float: left;
+            height: 30px;
+            width: 85%;
+            text-indent: 10px;
+            border: 1px solid rgba(35, 48, 84, 0.68);
+          }
+        }
+        .thisTitle {
+          display: block;
         }
       }
       .active {
-        background-color: #d2e3ee;
+        background-color: #e5e5e5;
       }
 
     }
@@ -145,7 +229,7 @@
 
   .allNote-footer {
     position: absolute;
-    bottom: 0;
+    bottom: 60px;
     width: 100%;
     height: 40px;
     line-height: 40px;
@@ -179,6 +263,7 @@
     }
     span {
       display: inline-block;
+      margin-top: 5px;
       margin-right: 5px;
       text-align: center;
       line-height: 20px;
@@ -198,6 +283,28 @@
       text-indent: 10px;
       font-size: 12px;
     }
+  }
+
+  .changeTitle {
+    background-color: #fff;
+    width: 160px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    box-shadow: 0 0 5px #859eb6;
+    border-radius: 1px;
+    div {
+      height: 40px;
+      line-height: 40px;
+      width: 100%;
+      font-size: 12px;
+      &:hover {
+        background-color: #ddeef9;
+        color: #506f91;
+      }
+    }
+
   }
 
 </style>
