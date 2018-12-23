@@ -1,5 +1,5 @@
 <template>
-  <div id="home">
+  <div id="home" @click="mavonEditorState" @contextmenu.prevent="mavonEditorState()">
     <div class="mainTitle" style="-webkit-app-region: drag">
       <TitleBtn></TitleBtn>
     </div>
@@ -16,14 +16,22 @@
           v-show="isClear" @click="clearText">X</span></div>
         <note-title
           v-bind:noteTitles="noteTitles"
-          v-on:articleId="getContent($event)">
+          v-on:articleId="getContent($event)"
+        >
         </note-title>
         <div class="splitLine" id="splitLine2"></div>
       </div>
-      <div class="noteContent" id="noteContent" >
-        <note-content v-bind:sendArticleId="sendArticleId"></note-content>
+      <div class="noteContent" id="noteContent">
+        <note-content
+          v-bind:sendArticleId="sendArticleId"
+          v-on:selectId="getChooseId($event)"
+        ></note-content>
       </div>
     </div>
+
+    <!--<div class="tipCommon">-->
+    <!--<tips></tips>-->
+    <!--</div>-->
 
   </div>
 </template>
@@ -46,10 +54,13 @@
         searchText: '',
         clearEditFolderState: true,     //文件夹 编辑状态
         clearEditTitleState: true,      //标题 编辑专题该
+        getArticleId: '',
+        const: 0,
       }
     },
     created() {
       // ipc.send('go-mianWindow');
+
     },
     methods: {
       close: function () {
@@ -70,6 +81,20 @@
       },
       clearState: function () {
         this.clearEditFolderState = '';
+      },
+
+      //
+      mavonEditorState: function () {
+
+        this.const++;
+        var thisId = 378504221 + this.const;
+        this.sendArticleId = ''
+        this.sendArticleId = thisId
+      },
+      getChooseId: function (state) {
+        this.getArticleId = state;
+
+        console.log(state)
       },
 
       //获取sidebar 传过来的article
@@ -170,6 +195,11 @@
       overflow: hidden;
       background: #fff;
     }
+  }
+
+  .tipCommon {
+
+    /*overflow: hidden;*/
   }
 
 

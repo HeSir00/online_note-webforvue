@@ -29,7 +29,7 @@
         <p>重命名</p></div>
       <div @click.stop="createTitle()"><span></span>
         <p>新建笔记</p></div>
-      <div><span></span>
+      <div @click.stop="del"><span></span>
         <p>删除</p></div>
     </div>
 
@@ -38,6 +38,7 @@
 </template>
 
 <script>
+
   export default {
     name: "NoteTitle",
     data: function () {
@@ -92,17 +93,21 @@
           }).then(function (res) {
             this.isShowAddBox = false;
             this.newTitle = '';
-            this.$ajax.post("/api/article/getTitleById", {
-              'folderId': folderId
-            }).then(function (res) {
+            if (res.data.num == 101) {
+              this.$my_message({content: res.data.msg, type: 'success',});
+              this.$ajax.post("/api/article/getTitleById", {
+                'folderId': folderId
+              }).then(function (res) {
+                this.noteTitles.data.data = res.data;
+              }.bind(this)).catch(function (error) {
+              });
+            }
 
-              console.log(res);
-              // this.noteTitles.data.data = res.data;
-            }.bind(this)).catch(function (error) {
-            });
           }.bind(this)).catch(function (error) {
           });
         }
+
+
       },
       //重命名
       geRename: function () {
@@ -119,12 +124,15 @@
             'articleTitle': this.editTitle
           }).then(function (res) {
             this.isChangeTitle = false;
-            this.$ajax.post("/api/article/getTitleById", {
-              'folderId': folderId
-            }).then(function (res) {
-              this.noteTitles.data.data = res.data;
-            }.bind(this)).catch(function (error) {
-            });
+            if (res.data.num == 101) {
+              this.$my_message({content: res.data.msg, type: 'success',});
+              this.$ajax.post("/api/article/getTitleById", {
+                'folderId': folderId
+              }).then(function (res) {
+                this.noteTitles.data.data = res.data;
+              }.bind(this)).catch(function (error) {
+              });
+            }
           }.bind(this)).catch(function (error) {
           });
         } else {
@@ -138,6 +146,27 @@
         this.isShowAddBox = true;
         this.isChangeTitle = false;
       },
+
+      //删除
+      del: function () {
+        this.isChangeTitle = false;
+        var folderId = this.noteTitles.folderId;
+        this.$ajax.post("/api/article/del", {
+          'articleId': this.titleId
+        }).then(function (res) {
+          console.log(res);
+          if (res.data.num == 100) {
+            this.$my_message({content: res.data.msg, type: 'success',});
+            this.$ajax.post("/api/article/getTitleById", {
+              'folderId': folderId
+            }).then(function (res) {
+              this.noteTitles.data.data = res.data;
+            }.bind(this)).catch(function (error) {
+            });
+          }
+        }.bind(this)).catch(function (error) {
+        });
+      }
 
 
     }

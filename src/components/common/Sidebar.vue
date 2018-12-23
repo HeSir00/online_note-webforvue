@@ -260,11 +260,14 @@
             this.$ajax.post("/api/part/add", {
               'partName': this.newName,
             }).then(function (res) {
-              //重新加载 所有的part
-              this.$ajax.post("/api/folder/lis", {}).then(function (res) {
-                this.allCate = res.data;
-              }.bind(this)).catch(function (error) {
-              });
+              if (res.data.num == 101) {
+                this.$my_message({content: res.data.msg, type: 'success',});
+                //重新加载 所有的part
+                this.$ajax.post("/api/folder/lis", {}).then(function (res) {
+                  this.allCate = res.data;
+                }.bind(this)).catch(function (error) {
+                });
+              }
             }.bind(this)).catch(function (error) {
             });
             this.isShowIn = false;
@@ -285,11 +288,14 @@
               'folderName': this.newName,
               'partId': id,
             }).then(function (res) {
-              //重新加载 所有的part
-              this.$ajax.post("/api/folder/lis", {}).then(function (res) {
-                this.allCate = res.data;
-              }.bind(this)).catch(function (error) {
-              });
+              if (res.data.num == 101) {
+                this.$my_message({content: res.data.msg, type: 'success',})
+                //重新加载 所有的part
+                this.$ajax.post("/api/folder/lis", {}).then(function (res) {
+                  this.allCate = res.data;
+                }.bind(this)).catch(function (error) {
+                });
+              }
             }.bind(this)).catch(function (error) {
             });
             this.isShowIn = false;

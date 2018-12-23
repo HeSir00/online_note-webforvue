@@ -6,13 +6,19 @@ import Router from 'vue-router'
 import router from './router'
 import mavonEditor from 'mavon-editor'
 import 'mavon-editor/dist/css/index.css'
+import Message from '@/components/common/message'
+
 
 import axios from 'axios'
+
+Vue.prototype.$my_message = Message.install;
 
 Vue.config.productionTip = false;
 Vue.use(mavonEditor);
 
+
 Vue.prototype.$ajax = axios;
+
 
 export function formatDate(date, fmt) {
   if (/(y+)/.test(fmt)) {
@@ -39,7 +45,6 @@ function padLeftZero(str) {
 }
 
 
-
 //使用钩子函数对路由进行权限跳转
 
 router.beforeEach((to, from, next) => {
@@ -60,6 +65,7 @@ router.beforeEach((to, from, next) => {
     }
   }
 });
+
 
 /* eslint-disable no-new */
 new Vue({

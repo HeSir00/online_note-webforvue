@@ -36,23 +36,53 @@
         defaultData: "preview",
         toolbar: {
           save: false,
-        }
+        },
+
+        oldId: '',
       };
     },
     props: {
       sendArticleId: {
         required: true
-      },
+      }
     },
     watch: {
       sendArticleId: function () {
-        this.$ajax.post("/api/article/getContentByarticleId", {
-          'articleId': this.sendArticleId,
-        }).then(function (res) {
-          this.articleContent = res.data[0];
-        }.bind(this)).catch(function (error) {
-        });
-      }
+        if (this.sendArticleId > 378504221) {
+          console.log(this.oldId);
+        } else {
+          this.$ajax.post("/api/article/getContentByarticleId", {
+            'articleId': this.sendArticleId,
+          }).then(function (res) {
+            this.articleContent = res.data[0];
+          }.bind(this)).catch(function (error) {
+          });
+        }
+
+
+        this.isEdit = '';
+        this.editTxt = '编辑';
+        //改变点击对象 监听保存 笔记修改
+        console.log(this.sendArticleId)
+
+
+        if (this.editContnet != '') {
+          this.$ajax.post("/api/article/edit", {
+            'articleTitle': this.articleContent.article_title,
+            'articleId': this.oldId,
+            'articleContent': this.editContnet,
+            'articleContentCode': this.editContnet_code,
+          }).then(function (res) {
+            if (res.data.num == 100) {
+              this.$my_message({content: res.data.msg, type: 'success',});
+            }
+
+          }.bind(this)).catch(function (error) {
+          });
+        }
+
+      },
+
     },
 
     methods: {
@@ -64,7 +94,9 @@
             'articleContent': this.editContnet,
             'articleContentCode': this.editContnet_code,
           }).then(function (res) {
-            console.log(res);
+            if (res.data.num == 100) {
+              this.$my_message({content: res.data.msg, type: 'success',});
+            }
           }.bind(this)).catch(function (error) {
           });
         }
@@ -72,10 +104,13 @@
 
 
       edit: function () {
+        this.oldId = this.sendArticleId;
+        this.$emit('selectId', this.oldId);
         if (this.isEdit == false) {
           this.editTxt = '保存';
         } else {
           this.editTxt = '编辑';
+
           if (this.editContnet != '') {
             this.$ajax.post("/api/article/edit", {
               'articleTitle': this.articleContent.article_title,
@@ -83,6 +118,10 @@
               'articleContent': this.editContnet,
               'articleContentCode': this.editContnet_code,
             }).then(function (res) {
+              if (res.data.num == 100) {
+                this.$my_message({content: res.data.msg, type: 'success',});
+              }
+
             }.bind(this)).catch(function (error) {
             });
           }
