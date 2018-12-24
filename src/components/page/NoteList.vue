@@ -6,8 +6,6 @@
     </div>
     <div class="noteContent" id="noteContent">
     </div>
-
-
   </div>
 </template>
 

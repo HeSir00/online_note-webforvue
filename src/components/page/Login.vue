@@ -56,7 +56,10 @@
             console.log(res);
             localStorage.setItem('username', res.data.username);
             localStorage.setItem('userEmail', res.data.userEmail);
-             this.$router.push('/');
+            localStorage.setItem('userID', res.data.userID);
+            localStorage.setItem('userSex', res.data.userSex);
+            localStorage.setItem('userPhone', res.data.userPhone);
+            this.$router.push('/');
           }
         }.bind(this)).catch(function (error) {
         });

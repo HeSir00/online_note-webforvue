@@ -2,10 +2,9 @@
   <div class="sideBar" @contextmenu.prevent="sendEditState"
        @click=" watchClicl();closeCreate; isCteate = false;isShowIn = false;isEditFolder = false;renameBox = false">
     <div class="userInfo">
-      <div class="header"></div>
+      <div class="header" @click="editUser;isEditBox = !isEditBox"></div>
       <div class="user">
-        <p>{{username}}</p>
-        <p>{{userEmail}}</p>
+        <!--<p>{{username}}</p>-->
       </div>
 
     </div>
@@ -57,6 +56,67 @@
       <input type="text" v-model="newName" autofocus="autofocus" @click.stop="isShowIn = true"
              @blur="createPartOrFolder">
     </div>
+
+    <div class="userEdit" v-show="isEditBox">
+      <div class="editContent">
+        <div class="closeBtn" @click="isEditBox = !isEditBox"> X</div>
+        <div class="userHeader"></div>
+        <div class="userInfo" v-show="!isChangePwd">
+          <label>
+            <span>昵称：</span>
+            <p v-show="!isEditInput">{{username}}</p>
+            <input class="inText" type="text" v-show="isEditInput" v-model="editNewName">
+          </label>
+
+          <label>
+            <span>Email：</span>
+            <p v-show="!isEditInput">{{userEmail}}</p>
+            <input class="inText" type="text" v-show="isEditInput" v-model="editNewEmail">
+          </label>
+          <label>
+            <span>手机：</span>
+            <p v-show="!isEditInput">{{userPhone}}</p>
+            <input class="inText" type="text" v-show="isEditInput" v-model="editNewPhone">
+          </label>
+
+          <label>
+            <span>性别：</span>
+            <p v-show="!isEditInput">{{userSex |sexFilter}}</p>
+            <div class="chooseSex" v-show="isEditInput">
+              <label>
+                男 <input name="sex" type="radio" value="1" v-model="editNewSex">
+              </label>
+              <label>
+                女 <input name="sex" type="radio" value="2" v-model="editNewSex">
+              </label>
+              <label>
+                保密<input name="sex" type="radio" value="0" v-model="editNewSex">
+              </label>
+            </div>
+          </label>
+        </div>
+
+        <div class="changePassword" v-show="isChangePwd">
+          <label> <span>密码：</span><input type="password" v-model="oldPassword"></label>
+          <label><span>新密码：</span><input type="password" v-model="newPassword"></label>
+          <label><span>重复密码：</span><input type="password" v-model="rePassword"></label>
+        </div>
+
+
+        <div class="btns">
+          <button class="saveBtn" v-show="isBtn" @click="save()">保存</button>
+          <button class="restBtn" v-show="isBtn" @click="isEditInput = !isEditInput;isBtn = false;isChangePwd = false">取消</button>
+          <button class="changeBtn" @click="changeInfo('info')"
+                  v-show="!isEditInput">修改信息
+          </button>
+          <button class="changeBtn" @click="changePwd('pwd')" v-show="!isEditInput">
+            修改密码
+          </button>
+        </div>
+
+
+      </div>
+    </div>
   </div>
 </template>
 
@@ -90,6 +150,31 @@
         partOrFolder: '',          //通过传值 区别创建的是part 还是 folder
 
         getPartId: '',             //x新建文件夹 需要的partID
+
+        isEditBox: false,          //修改用户 信息
+        isEditUser: false,          //修改用户 信息
+        isEditInput: false,              //输入框
+        editNewName: '',              //输入框
+        editNewEmail: '',              //输入框
+        editNewPhone: '',              //输入框
+        editNewSex: 0,                //输入框
+        isChangePwd: false,             //修改密码状态
+        oldPassword: '',
+        newPassword: '',
+        rePassword: '',
+        isBtn: false,
+        isSaveState: ''
+      }
+    },
+    filters: {
+      sexFilter: function (value) {
+        if (value == 0) {
+          return '保密';
+        } else if (value == 1) {
+          return '男'
+        } else {
+          return '女'
+        }
       }
     },
     props: {
@@ -102,11 +187,15 @@
         this.isEditFolder = this.clearEditFolderState;
       }
     },
-    created() {
-      console.log(this.clearEditFolderState)
 
+    created() {
       this.username = localStorage.getItem('username');
       this.userEmail = localStorage.getItem('userEmail');
+      this.userID = localStorage.getItem('userID');
+      this.userSex = localStorage.getItem('userSex');
+      this.userPhone = localStorage.getItem('userPhone');
+      console.log(this.userID)
+
       this.$ajax.post("/api/folder/lis", {}).then(function (res) {
         this.allCate = res.data;
         console.log(this.allCate);
@@ -307,7 +396,76 @@
       watchClicl: function () {
         this.isChoosePart = -1;//当前选中的part
         this.isChooseFolder = -1;//恢复
-      }
+      },
+
+      editUser: function () {
+      },
+
+      // 修改用户信息
+      changeInfo: function (state) {
+        this.isEditInput = !this.isEditInput;
+        this.isBtn = !this.isBtn;
+        this.isSaveState = state;
+
+        this.editNewName = this.username;
+        this.editNewEmail = this.userEmail;
+        this.editNewPhone = this.userPhone;
+        this.editNewSex = this.userSex;
+      },
+      changePwd: function (state) {
+        this.isEditInput = !this.isEditInput;
+        this.isChangePwd = !this.isChangePwd;
+        this.isBtn = !this.isBtn;
+        this.isSaveState = state;
+      },
+      //保存修改
+      save: function () {
+        var changeInfo = {
+          'userid': this.userID,
+          'username': this.editNewName,
+          'useremail': this.editNewEmail,
+          'userphone': this.editNewPhone,
+          'usersex': this.editNewSex,
+        };
+        var changePwd = {
+          'userid': this.userID,
+          'oldPassword': this.oldPassword,
+          'newPassword': this.newPassword,
+        };
+        if (this.isSaveState == 'info') {
+          this.$ajax.post("/api/login/editInfo", changeInfo).then(function (res) {
+            if (res.data.num == 101) {
+              this.$my_message({content: res.data.msg, type: 'success',});
+              this.isEditInput = !this.isEditInput;
+              this.isBtn = false;
+              this.username = res.data.data.user_name;
+              this.userEmail = res.data.data.user_email;
+              this.userSex = res.data.data.user_sex;
+              this.userPhone = res.data.data.user_phone;
+            }
+          }.bind(this)).catch(function (error) {
+          });
+        } else {
+          if (this.oldPassword == '') {
+            this.$my_message({content: '必须填写旧 的密码', type: 'danger'});
+          }
+          if (this.newPassword != this.rePassword) {
+            this.$my_message({content: '两次密码不一致', type: 'danger'});
+          } else {
+            this.$ajax.post("/api/login/changePwd", changePwd).then(function (res) {
+              if (res.data.num == 101) {
+                this.$my_message({content: res.data.msg, type: 'success',});
+                this.isEditInput = !this.isEditInput;
+                this.isChangePwd = !this.isChangePwd;
+                this.isBtn = false;
+              }
+            }.bind(this)).catch(function (error) {
+            });
+          }
+
+        }
+
+      },
     }
   }
 
@@ -610,6 +768,161 @@
       &:focus {
         outline: none;
         border: 1px solid #00d600;
+      }
+    }
+  }
+
+  .userEdit {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    z-index: 9999999;
+    background-color: rgba(44, 62, 80, 0.1);
+    .editContent {
+      width: 500px;
+      height: 300px;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      margin: auto;
+      border-radius: 5px;
+      background-color: #fff;
+      box-shadow: 0 0 5px rgba(35, 48, 84, 0.46);
+      .closeBtn {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        font-size: 12px;
+        cursor: pointer;
+        color: #2c3e50;
+      }
+      .userHeader {
+        float: left;
+        width: 100px;
+        height: 100px;
+        background-color: #2c3e50;
+        border-radius: 50%;
+        margin-top: 100px;
+        margin-left: 50px;
+      }
+      .userInfo {
+        float: left;
+        margin-left: 50px;
+        margin-top: 80px;
+        label {
+          width: 300px;
+          height: 30px;
+          font-size: 14px;
+          display: block;
+          margin: 5px auto;
+          /*overflow: hidden;*/
+          span {
+            float: left;
+            display: inline-block;
+            width: 80px;
+            height: 30px;
+            line-height: 30px;
+            text-indent: 20px;
+            text-align: left;
+          }
+          p {
+            float: left;
+            width: 130px;
+            height: 30px;
+            line-height: 30px;
+            text-align: left;
+          }
+          .inText {
+            width: 150px;
+            height: 25px;
+            float: left;
+            position: relative;
+            top: 0px;
+            left: 10px;
+            text-indent: 10px;
+            border: 1px solid #506f91;
+          }
+          .chooseSex {
+            height: 30px;
+            label {
+              width: 55px;
+              height: 30px;
+              line-height: 20px;
+              margin-top: 2px;
+              float: left;
+              input[type='radio'] {
+                width: 15px;
+                height: 15px;
+              }
+            }
+          }
+        }
+      }
+      .changePassword {
+        width: 250px;
+        height: 150px;
+        float: left;
+        margin-top: 90px;
+        font-size: 14px;
+        label {
+          display: block;
+          margin-bottom: 20px;
+          span {
+            display: inline-block;
+            width: 80px;
+          }
+          input {
+            display: inline-block;
+            height: 22px;
+            width: 150px;
+            text-indent: 10px;
+          }
+
+        }
+      }
+
+      .btns {
+        position: absolute;
+        right: 20px;
+        bottom: 20px;
+        button {
+          height: 25px;
+          line-height: 26px;
+          padding: 0 15px;
+          border: none;
+          border-radius: 10px;
+          font-size: 12px;
+          background-color: #6e9bc8;
+          color: #fff;
+          &:focus {
+            outline: none;
+          }
+        }
+        .restBtn {
+          background-color: #fff;
+          border: 1px solid #7dafdd;
+          color: #2c3e50;
+          margin-left: 20px;
+        }
+
+        .changeBtn {
+          &:hover {
+            background-color: #2c3e50;
+          }
+        }
+        .saveBtn {
+          &:hover {
+            background-color: #2c3e50;
+          }
+        }
+        .restBtn {
+          &:hover {
+            border: 1px solid #233054;
+          }
+        }
       }
     }
   }

@@ -1,8 +1,8 @@
 <template>
   <div id="home" @click="mavonEditorState" @contextmenu.prevent="mavonEditorState()">
-    <div class="mainTitle" style="-webkit-app-region: drag">
-      <TitleBtn></TitleBtn>
-    </div>
+    <!--<div class="mainTitle" style="-webkit-app-region: drag">-->
+      <!--<TitleBtn></TitleBtn>-->
+    <!--</div>-->
     <div class="sideBar">
       <side-bar v-on:sendFolder="getFolder($event)"
                 v-on:editFolderState="getEditFolderState($event)"
@@ -12,12 +12,9 @@
 
     <div class="content" id="content" @click.stop="clearState()" @contextmenu.prevent="clearState()">
       <div class="noteList" id="noteList">
-        <div class="search"><input type="text" v-on:input="inputFun" v-model="searchText" placeholder="搜索..."> <span
-          v-show="isClear" @click="clearText">X</span></div>
         <note-title
           v-bind:noteTitles="noteTitles"
-          v-on:articleId="getContent($event)"
-        >
+          v-on:articleId="getContent($event)">
         </note-title>
         <div class="splitLine" id="splitLine2"></div>
       </div>
@@ -29,9 +26,6 @@
       </div>
     </div>
 
-    <!--<div class="tipCommon">-->
-    <!--<tips></tips>-->
-    <!--</div>-->
 
   </div>
 </template>
@@ -48,7 +42,6 @@
     data: function () {
       return {
         isCteate: false,
-        isClear: false,
         noteTitles: '',
         sendArticleId: '',
         searchText: '',
@@ -108,17 +101,7 @@
         console.log(this.sendArticleId)
       },
 
-      //获取查询
-      clearText: function () {
-        this.searchText = '';
-        this.isClear = false;
-      },
-      inputFun: function () {
-        if (this.searchText != '') {
-          this.isClear = true;
-        }
-        console.log(this.searchText)
-      }
+
     }
   }
 
@@ -158,8 +141,8 @@
   .content {
     float: left;
     width: calc(100% - 202px);
-    margin-top: 30px;
-    height: calc(100% - 30px);
+    /*margin-top: 30px;*/
+    height:100%;
     background: #f7f7f7;
     .noteList {
       float: left;

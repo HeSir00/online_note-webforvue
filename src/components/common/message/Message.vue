@@ -83,6 +83,7 @@
   }
 
   .danger {
-    background-color: #f2dede;
+    background-color: #ff5f12;
+    color: #fff;
   }
 </style>

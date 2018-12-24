@@ -2,14 +2,16 @@
   <!--@contextmenu.prevent="isChangeTitle = false"-->
 
   <div class="allNote-title" @click="isChangeTitle = false;isChooseTitle = -1;isShowAddBox = false">
-    <ul>
+    <div class="search"><input type="text" v-model="searchText" v-on:input="search" placeholder="搜索..."> <span
+      @click="clearText" v-show="isCloseSearch">X</span></div>
 
+    <ul>
       <li v-for="(item,index) in noteTitles.data.data"
           @click="showNoteContent(item.article_id,index)"
           @contextmenu="showNoteContent(item.article_id,index,item.article_title)"
           @contextmenu.prevent="open"
           :class="{active:index == isChoose}">
-        <span></span>
+        <span> M </span>
         <p>{{item.article_title}}</p> <span></span>
 
 
@@ -22,7 +24,6 @@
         <input v-model="newTitle" type="text" @click.stop="" autofocus="autofocus" @blur="add">
       </li>
     </ul>
-
 
     <div class="changeTitle" ref="changeTitle" v-show="isChangeTitle">
       <div @click.stop="geRename()"><span></span>
@@ -53,6 +54,9 @@
         oldTitle: '',           // 修改之前的标题
         editTitle: '',         // 修改的标题
         titleId: '',            //标题id
+        searchText: '',          //查询 文字
+        isCloseSearch: false,
+        thisOldNoteTitles : '  '
       }
     },
     props: {
@@ -60,7 +64,14 @@
         required: true
       },
     },
+    watch: {
+      noteTitles: function () {
+        console.log(this.noteTitles);
+        this.searchText = '';
+        this.isCloseSearch = false;
+      }
 
+    },
 
     methods: {
       //传值
@@ -77,10 +88,6 @@
           this.$refs.changeTitle.style.top = event.screenY - 160 + 'px';
           this.$refs.changeTitle.style.left = event.offsetX + 20 + 'px';
         }
-      },
-      addBtn: function () {
-        this.isShowEditMenu = false;
-        this.isShowAddBox = true;
       },
       add: function () {
         var folderId = this.noteTitles.folderId;
@@ -166,6 +173,28 @@
           }
         }.bind(this)).catch(function (error) {
         });
+      },
+
+      //获取查询
+      clearText: function () {
+        this.searchText = '';
+        this.isCloseSearch = false;
+        this.noteTitles.data.data  = this.thisOldNoteTitles;
+      },
+      search: function () {
+        this.thisOldNoteTitles = this.noteTitles.data.data;
+        if (this.searchText != '') {
+          this.isCloseSearch = true;
+
+          this.$ajax.post("/api/article/searchArticle", {
+            'keywords': this.searchText
+          }).then(function (res) {
+
+            console.log(res);
+            this.noteTitles.data.data = res.data;
+          }.bind(this)).catch(function (error) {
+          });
+        }
       }
 
 
@@ -210,11 +239,15 @@
           margin-left: 20px;
           &:nth-of-type(1) {
             display: inline-block;
-            margin-top: 17px;
-            width: 10px;
-            height: 10px;
+            margin-top: 12px;
+            width: 20px;
+            height: 20px;
+            border: 1px solid #233054;
             margin-right: 10px;
-            background-color: #2c3e50;
+            line-height: 20px;
+            font-size: 14px;
+            transform: scale(0.5);
+            /*background-color: #2c3e50;*/
           }
           &:nth-of-type(2) {
             float: right;
@@ -258,7 +291,7 @@
 
   .allNote-footer {
     position: absolute;
-    bottom: 60px;
+    bottom: 10px;
     width: 100%;
     height: 40px;
     line-height: 40px;

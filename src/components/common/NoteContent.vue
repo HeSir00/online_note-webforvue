@@ -1,23 +1,38 @@
 <template>
 
-  <div class="note" v-show="articleContent">
-    <div class="title"><input type="text" v-model="articleContent.article_title"></div>
+  <div>
+    <div class="note" v-show="articleContent">
+      <div class="title"><input type="text" v-model="articleContent.article_title"></div>
 
-    <div class="contents">
-      <mavon-editor class="mavonEditor" v-html="articleContent.article_content" :subfield="false"
-                    :defaultOpen="defaultData"
-                    :toolbarsFlag="false"
-                    :boxShadow="true"/>
+      <div class="contents">
+        <mavon-editor class="mavonEditor" v-html="articleContent.article_content" :subfield="false"
+                      :defaultOpen="defaultData"
+                      :toolbarsFlag="false"
+                      :boxShadow="true"/>
+      </div>
+      <div class="editorBox" v-show="isEdit" @keydown.ctrl.83="show($event)">
+        <mavon-editor class="mavonEditor" v-model="articleContent.article_content_code" @change="changeData"/>
+      </div>
+
+
+      <div class="edit">
+        <div class="editBtn" @click="edit();isEdit = !isEdit">{{editTxt}}</div>
+      </div>
     </div>
-    <div class="editorBox" v-show="isEdit" @keydown.ctrl.83="show($event)">
-      <mavon-editor class="mavonEditor" v-model="articleContent.article_content_code" @change="changeData"/>
-    </div>
 
 
-    <div class="edit">
-      <div class="editBtn" @click="edit();isEdit = !isEdit">{{editTxt}}</div>
+    <div class='noContent' v-show="!articleContent">
+      <p>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+      </p>
+      <div>无预览</div>
     </div>
   </div>
+
+
 
 
 </template>
@@ -192,11 +207,11 @@
 
   .edit {
     width: 60px;
-    height: calc(100% - 91px);
+    height: 100%;
     background-color: #fff;
     position: absolute;
     right: 10px;
-    top: 91px;
+    top: 60px;
     z-index: 9999;
     border-left: 1px solid #c3defa;
     .editBtn {
@@ -220,7 +235,7 @@
     height: calc(100% - 91px);
     width: calc(100% - 601px);
     position: absolute;
-    top: 120px;
+    top: 80px;
     /*margin-top: 100px;*/
 
     .mavonEditor {
@@ -234,6 +249,41 @@
       top: 50px !important;
     }
     .v-note-wrapper {
+    }
+  }
+
+  .noContent{
+    width: 80px;
+    height: 80px;
+    position:relative;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+    margin-top: 400px;
+    p{
+      float: left;
+      width: 22px;
+      height: 25px;
+      background-color: #f4f4f4;
+      text-align: center;
+      span{
+        float: left;
+        margin-left:3px;
+        margin-top: -1px;
+        width: 15px;
+        height: 5px;
+        display: inline-block;
+        border-bottom: 1px solid #cfcfcf;
+      }
+    }
+    div{
+      float: left;
+      font-size: 14px;
+      margin-left: 10px;
+      margin-top: 2px;
+      color: #8c8c8c;
     }
   }
 
